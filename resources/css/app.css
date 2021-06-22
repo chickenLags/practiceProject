@@ -1,0 +1,88 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+
+.grid-65 {
+    display: grid;
+    grid-template-columns: repeat(65, 1fr);
+}
+
+.grid-item {
+    height: 17.97px;
+    background-color: blue;
+    border: 1px solid grey;
+
+    position: relative;
+}
+
+.grid-item:hover {
+    background-color:gray
+}
+
+.player {
+    position: absolute;
+    height:100%;
+    width: 100%;
+    border-radius: 50%;
+    background-color: red;
+}
+
+
+.battle-container {
+    position: relative;
+    height: 30rem;
+    border: 1px solid red;
+    margin: 1rem;
+}
+
+.enemy-stats {
+    position: absolute;
+    border: 1px solid blue;
+    width: 50%;
+    height:10%;
+    top: 1rem;
+    left: 0;
+}
+
+.enemy-self {
+    position: absolute;
+    border: 1px solid blue;
+    width: 50%;
+    height:70%;
+    top: 0;
+    right: 0;
+
+}
+
+.player-self {
+    position: absolute;
+    border: 1px solid blue;
+    width: 50%;
+    height:70%;
+    bottom: 0;
+    left: 0;
+
+}
+
+.player-options {
+    position: absolute;
+    border: 1px solid blue;
+    width: 50%;
+    height:25%;
+
+    bottom: 1rem;
+    left: 0;
+
+}
+
+.player-stats {
+    position: absolute;
+    border: 1px solid blue;
+    width: 50%;
+    height:10%;
+
+    bottom: 0;
+    right: 0;
+
+}
