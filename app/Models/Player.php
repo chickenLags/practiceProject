@@ -10,6 +10,8 @@ class Player extends Model
     use HasFactory;
 
     protected $fillable = [
+        'level',
+        'hp',
         'strength',
         'vitality',
         'agility',
@@ -21,30 +23,11 @@ class Player extends Model
         'speed',
         'x',
         'y',
-    ];
-
-    protected $defaultAttributes = [
-        'level' => 1,
-        'hp' => 10,
-        'strength' => 1,
-        'vitality' => 1,
-        'agility' => 1,
-        'wisdom' => 1,
-        'spirit' => 1,
-        'hit_rate' => 1,
-        'luck' => 1,
-        'evasion' => 1,
-        'speed' => 1,
-        'x' => 0,
-        'y' => 0,
+        'image_url',
     ];
 
     public function __construct(array $attributes = [])
     {
-        if (empty($attributes)) {
-            $attributes = $this->defaultAttributes;
-        }
-
         parent::__construct($attributes);
     }
 
@@ -70,6 +53,40 @@ class Player extends Model
 
     public function battle(){
         return $this->hasOne(Battle::class);
+    }
+
+    public function maxHp() {
+        return (3 * $this->level) * ((0.3 * $this->vitality) + (0.2 * $this->wisdom));
+    }
+
+    public function levelUp() {
+        $this->level += 1;
+        $this->strength += random_int(0, 10);;
+        $this->vitality += random_int(0, 10);;
+        $this->agility += random_int(0, 10);;
+        $this->wisdom += random_int(0, 10);;
+        $this->spirit += random_int(0, 10);;
+        $this->hit_rate += random_int(0, 10);;
+        $this->luck += random_int(0, 10);;
+        $this->evasion += random_int(0, 10);;
+        $this->speed += random_int(0, 10);;
+        $this->hp = $this->maxHp();
+
+        $this->save();
+    }
+
+    public function heal($amount = null){
+        if (!$amount) {
+            $this->hp = $this->maxHp();
+            $this->save();
+            return;
+        }
+
+        $this->hp += $amount;
+        if ($this->hp > $this->maxHp()) {
+            $this->hp = $this->maxHp();
+        }
+        $this->save();
     }
 
 }

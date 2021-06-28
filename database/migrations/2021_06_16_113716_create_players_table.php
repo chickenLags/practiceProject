@@ -32,6 +32,8 @@ class CreatePlayersTable extends Migration
             $table->integer('x');
             $table->integer('y');
 
+            $table->string('image_url', 500);
+
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

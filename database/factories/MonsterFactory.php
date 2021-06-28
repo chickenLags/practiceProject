@@ -22,23 +22,24 @@ class MonsterFactory extends Factory
     public function definition()
     {
         $randomLevel = $this->faker->numberBetween(0, 5);
-        $vitality = $this->faker->numberBetween(1, 3);
+        $vitality = $this->faker->numberBetween(1, 10);
+        $wisdom = $this->faker->numberBetween(1, 10);
         return [
             'name' => $this->faker->name,
             'level' => $randomLevel,
 
-            'hp' => (5 * $vitality) ** (1.20 * $randomLevel),
-            'strength' => 1,
+            'hp' => (3 * $randomLevel) * ((0.6 * $vitality) + (0.4 * $wisdom)),
+            'strength' => $this->faker->numberBetween(1, 10),
             'vitality' => $vitality,
-            'agility' => 1,
-            'wisdom' => 1,
-            'spirit' => 1,
-            'hit_rate' => 1,
-            'luck' => 1,
-            'evasion' => 1,
-            'speed' => 1,
+            'agility' => $this->faker->numberBetween(1, 10),
+            'wisdom' => $wisdom,
+            'spirit' => $this->faker->numberBetween(1, 10),
+            'hit_rate' => $this->faker->numberBetween(1, 10),
+            'luck' => $this->faker->numberBetween(1, 10),
+            'evasion' => $this->faker->numberBetween(1, 10),
+            'speed' => $this->faker->numberBetween(1, 10),
 
-            'image_url' => 'temp',
+            'image_url' => '/img/gargoyle.png',
         ];
     }
 }

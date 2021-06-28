@@ -15,7 +15,7 @@ class userObserver
      */
     public function created(User $user)
     {
-        $user->player()->save(new Player());
+        $user->player()->save( Player::factory()->make());
     }
 
     /**

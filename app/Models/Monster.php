@@ -13,6 +13,7 @@ class Monster extends Model
         'name',
         'level',
 
+        'hp',
         'strength',
         'vitality',
         'agility',
@@ -34,4 +35,10 @@ class Monster extends Model
     public function battle(){
         return $this->hasOne(Battle::class);
     }
+
+    public function getFullNameAttribute() {
+        return "lvl.$this->level $this->name";
+    }
+
+    public $additional_attributes = ['full_name'];
 }
