@@ -28,4 +28,8 @@ Route::get('/world-map', [\App\Http\Controllers\WorldMapController::class, 'show
 Route::get('/battle', [App\Http\Controllers\BattleController::class, 'create'])
     ->middleware(['auth'])->name('battle');
 
+Route::group(['prefix' => 'admin'], function () {
+    app()->voyager->routes();
+});
+
 require __DIR__.'/auth.php';
