@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
+use App\Actions\PlayerLevelUp;
+use App\Actions\PlayerMassHeal;
+use App\Actions\PlayerMassLevelUp;
 use App\Models\User;
-use App\Models\WorldMap;
 use App\Observers\userObserver;
-use App\Observers\WorldMapObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         User::observe(userObserver::class);
-//        WorldMap::observe(WorldMapObserver::class);
+        app()->voyager->addAction(PlayerLevelUp::class);
+        app()->voyager->addAction(PlayerMassLevelUp::class);
+        app()->voyager->addAction(PlayerMassHeal::class);
     }
 }

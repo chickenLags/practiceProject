@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Battle;
+use App\Models\Player;
 use Illuminate\Http\Request;
 
 class BattleController extends Controller
@@ -45,9 +46,11 @@ class BattleController extends Controller
      * @param  \App\Models\Battle  $battle
      * @return \Illuminate\Http\Response
      */
-    public function show(Battle $battle)
+    public function show( int $playerId)
     {
-        //
+        $battle = Battle::where('player_id', $playerId)->with(['player', 'monster'])->first();
+
+        return response()->json(['battle' => $battle]);
     }
 
     /**

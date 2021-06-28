@@ -12,26 +12,35 @@
 
                     <h1>Battle</h1>
                     <div class="battle-container">
-                        <div class="enemy-stats"></div>
-                        <div class="enemy-self"></div>
-
-                        <div class="player-self"></div>
-                        <div class="player-options "></div>
-
-                        <div class="player-stats">
-
+                        <div class="stats enemy-stats">
+                            <label entity-name></label>
+                            <div class="hp-bar"><div class="current-health"></div></div>
                         </div>
+                        <div class="enemy-self entity-portrait">
+                            <img class="entity-image" src=" {{asset('/img/default.png')}}">
+                        </div>
+
+                        <div class="player-self entity-portrait">
+                            <img class="entity-image flip-image entity-image" src=" {{asset('/img/default.png')}}">
+                        </div>
+
+                        <div class="stats player-stats">
+                            <label entity-name></label>
+                            <div class="hp-bar"><div class="current-health"></div></div>
+                        </div>
+
+                        <div class="combat-menu "></div>
+                        <div class="notification ">test</div>
+
                     </div>
+
+
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let enemyStats = document.querySelector('.enemy-stats');
-        let enemySelf = document.querySelector('.enemy-self');
-        let playerSelf = document.querySelector('.player-self');
-        let playerOptions = document.querySelector('.player-options');
-        let playerStats = document.querySelector('.player-stats');
+
     </script>
 </x-app-layout>

@@ -71,6 +71,6 @@ class WorldMap extends Model
     }
 
     public function sortChunks() {
-        $this->chunks = $this->chunks->sortBy('y')->sortBy('x');
+        $this->chunks = $this->chunks; //->sortBy('x')->sortBy('y');
     }
 }

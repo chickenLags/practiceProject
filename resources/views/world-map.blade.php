@@ -12,7 +12,7 @@
                     You're logged in!
                     <div class="grid-65">
                         @forelse($worldMap->chunks as $key => $chunk)
-                            <div class='grid-item'  data-x="{{$chunk->x}}" data-y="{{$chunk->y}}">
+                            <div class='grid-item' style="opacity: {{$chunk->danger_index}}"  data-x="{{$chunk->x}}" data-y="{{$chunk->y}}">
                                 @if($chunk->sameLocationAsPlayer($player))
                                     <div class="player"></div>
                                 @endif
@@ -22,12 +22,6 @@
                             <li>no chunks</li>
                         @endforelse
 
-
-                        @php
-                        //dd($player);
-
-                        //dd((new Chunk(['x'=>0, 'y' => 0, 'world_map_id' => 1]))->sameLocationAsPlayer($player));
-                        @endphp
                     </div>
                 </div>
             </div>

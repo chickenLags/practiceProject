@@ -14,6 +14,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+Route::middleware('auth:api')
+    ->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/battle/{player_id}', [\App\Http\Controllers\BattleController::class, 'show'])
+//    ->middleware(['auth:api'])
+        //TODO: implement working guard.
+    ->name('api.getBattle');

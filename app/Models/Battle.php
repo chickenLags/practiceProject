@@ -10,10 +10,10 @@ class Battle extends Model
     use HasFactory;
 
     public function player() {
-        return $this->hasOne(Player::class);
+        return $this->hasOne(Player::class, 'id', 'player_id');
     }
 
     public function monster() {
-        return $this->hasOne(Monster::class);
+        return $this->hasOne(Monster::class, 'id', 'monster_id');
     }
 }

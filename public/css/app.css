@@ -32120,54 +32120,187 @@ select {
 
 .battle-container {
   position: relative;
-  height: 30rem;
-  border: 1px solid red;
+  height: 40rem;
+  max-height: 100vh;
   margin: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.stats {
+  display: flex;
+  flex-flow: column;
+  position: absolute;
+  width: 50%;
+  height:15%;
+}
+
+.stats meter {
+  width: 100%;
+  height: 2rem;
+  transition: all 1s;
+}
+
+.stats .hp-bar {
+  height: 1rem;
+  background-color: grey;
+  border-radius: 6px;
+  position: relative;
+  border: 1px solid black;
+}
+
+.stats > .hp-bar > .current-health {
+  background-color: blue;
+  border: 2px solid midnightblue;
+  position:absolute;
+  width:100%;
+  height: 100%;
+  border-radius: 6px;
+  translate: scale(1,1);
+  transition: transform 500ms ease-in-out;
 }
 
 .enemy-stats {
-  position: absolute;
-  border: 1px solid blue;
-  width: 50%;
-  height:10%;
   top: 1rem;
   left: 0;
 }
 
+.entity-image{
+  max-height: 100%;
+  height: -webkit-fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+
+.entity-portrait {
+  position:absolute;
+  display: flex;
+  justify-content: center;
+}
+
 .enemy-self {
   position: absolute;
-  border: 1px solid blue;
   width: 50%;
-  height:70%;
+  height:100%;
   top: 0;
   right: 0;
 }
 
 .player-self {
   position: absolute;
-  border: 1px solid blue;
   width: 50%;
   height:70%;
   bottom: 0;
   left: 0;
 }
 
-.player-options {
+.entity-portrait > .tween {
+  -webkit-animation: tween2 100ms linear 0s infinite ;
+          animation: tween2 100ms linear 0s infinite ;
+}
+
+.entity-portrait > .dodge {
+  -webkit-animation: dodge 600ms linear 0s infinite ;
+          animation: dodge 600ms linear 0s infinite ;
+}
+
+@-webkit-keyframes tween2 {
+  from { transform: translate(-2rem, 0)
+  }
+
+  to {
+    transform: translate(2rem, 0)
+  }
+}
+
+@keyframes tween2 {
+  from { transform: translate(-2rem, 0)
+  }
+
+  to {
+    transform: translate(2rem, 0)
+  }
+}
+
+@-webkit-keyframes dodge {
+  from { transform: rotate(0)
+  }
+
+  to { transform: rotate(360deg)
+  }
+}
+
+@keyframes dodge {
+  from { transform: rotate(0)
+  }
+
+  to { transform: rotate(360deg)
+  }
+}
+
+.combat-menu {
   position: absolute;
-  border: 1px solid blue;
   width: 50%;
   height:25%;
   bottom: 1rem;
   left: 0;
+  transform: scale(0, 1);
+  transition: transform 350ms ease-in-out;
+  background-color: #777a;
+  display: flex;
+  flex-direction: column;
+}
+
+.combat-menu.active {
+  transform: scale(1,1);
+}
+
+.combat-menu .combat-option {
+  padding-left: 2rem;
+  font-size: 1.3rem;
+  text-transform: capitalize;
+  font-weight: 600;
+  border: 2px solid grey;
+  border-left: 6px solid grey;
+  background-color: #ccca;
+  cursor: pointer;
+  transition: background-color 200ms ease-in-out;
+}
+
+.combat-menu .combat-option:hover {
+  background-color: #eeea;
+  border: 2px solid #ccca;
+  border-left: 6px solid #ccca;
+}
+
+.notification {
+  background-color: pink;
+  position: absolute;
+  top: -3rem;
+  z-index: 10;
+  padding: 0.5rem 1.5rem;
+  min-width: 7rem;
+  /*text-align: center;*/
+  border: 2px solid indianred;
+  text-transform: capitalize;
+  transition: transform 200ms ease-in-out;
+}
+
+.notification.active {
+  transform: translate(0, 7rem);
 }
 
 .player-stats {
-  position: absolute;
-  border: 1px solid blue;
-  width: 50%;
-  height:10%;
-  bottom: 0;
+  bottom: 1rem;
   right: 0;
+}
+
+.flip-image {
+  transform: rotateY(
+        180deg
+    );
 }
 
 @media (min-width: 640px) {
