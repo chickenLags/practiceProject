@@ -1990,6 +1990,14 @@ Array.prototype.intersect = function (arr1) {
   });
 };
 
+Array.prototype.merge = function (arr) {
+  return this.concat(arr);
+};
+
+Object.prototype.intersectKeys = function (arr) {
+  return Object.keys(this).intersect(arr);
+};
+
 function getCookie(cname) {
   var name = cname + "=";
   var decodedCookie = decodeURIComponent(document.cookie);
@@ -2031,6 +2039,52 @@ if (window.location.pathname === '/battle') {
     new _modules_Battle_Battle__WEBPACK_IMPORTED_MODULE_0__.default(battleData.battle);
   });
 }
+
+/***/ }),
+
+/***/ "./resources/js/modules/AvailableActionStore.js":
+/*!******************************************************!*\
+  !*** ./resources/js/modules/AvailableActionStore.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var AvailableActionStore = /*#__PURE__*/function () {
+  function AvailableActionStore(magicInventory, itemIventory, skillInventory) {
+    _classCallCheck(this, AvailableActionStore);
+
+    _defineProperty(this, "actions", []);
+
+    this.actions = this.actions.merge(magicInventory.getActions());
+    this.actions = this.actions.merge(itemIventory.getActions());
+    this.actions = this.actions.merge(skillInventory.getActions());
+  }
+
+  _createClass(AvailableActionStore, [{
+    key: "find",
+    value: function find(name) {
+      return this.actions.find(function (action) {
+        return action.name === name;
+      });
+    }
+  }]);
+
+  return AvailableActionStore;
+}();
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AvailableActionStore);
 
 /***/ }),
 
@@ -2082,15 +2136,57 @@ var Battle = /*#__PURE__*/function () {
 
     _defineProperty(this, "combatNotification", void 0);
 
-    _defineProperty(this, "notify", /*#__PURE__*/function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee(message) {
+    _defineProperty(this, "battleCallback", /*#__PURE__*/function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee(playerCombatAction) {
+        var combatActions, _i, _combatActions, combatAction;
+
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _this.combatNotification.show(message);
+                combatActions = [playerCombatAction, _this.monster.getCombatAction()]; // combatActions.forEach(async combatAction => await combatAction.handle());
 
-              case 1:
+                _i = 0, _combatActions = combatActions;
+
+              case 2:
+                if (!(_i < _combatActions.length)) {
+                  _context.next = 11;
+                  break;
+                }
+
+                combatAction = _combatActions[_i];
+                _context.next = 6;
+                return combatAction.handle(_this.notify);
+
+              case 6:
+                _context.next = 8;
+                return _Time__WEBPACK_IMPORTED_MODULE_3__.default.sleep(_this.delayBetweenTurns);
+
+              case 8:
+                _i++;
+                _context.next = 2;
+                break;
+
+              case 11:
+                if (_this.player.isAlive()) {
+                  _context.next = 13;
+                  break;
+                }
+
+                return _context.abrupt("return", _this.handleBattleLost());
+
+              case 13:
+                if (_this.monster.isAlive()) {
+                  _context.next = 15;
+                  break;
+                }
+
+                return _context.abrupt("return", _this.handleBattleWon());
+
+              case 15:
+                _this.combatMenu.show();
+
+              case 16:
               case "end":
                 return _context.stop();
             }
@@ -2103,11 +2199,35 @@ var Battle = /*#__PURE__*/function () {
       };
     }());
 
+    _defineProperty(this, "notify", /*#__PURE__*/function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2(message) {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _this.combatNotification.show(message);
+
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      return function (_x2) {
+        return _ref2.apply(this, arguments);
+      };
+    }());
+
     this.monster = new _Monster__WEBPACK_IMPORTED_MODULE_1__.default(battleData.monster, this);
     this.player = new _Player__WEBPACK_IMPORTED_MODULE_2__.default(battleData.player, this);
     this.combatNotification = new _CombatNotification__WEBPACK_IMPORTED_MODULE_4__.default();
-    this.combatMenu = new _CombatMenu__WEBPACK_IMPORTED_MODULE_5__.default(this, this.player);
-    this.startBattle();
+    Promise.all([this.player.initAsync(), this.monster.initAsync()]).then(function () {
+      _this.combatMenu = new _CombatMenu__WEBPACK_IMPORTED_MODULE_5__.default(_this, _this.player);
+
+      _this.startBattle();
+    });
   }
 
   _createClass(Battle, [{
@@ -2115,73 +2235,6 @@ var Battle = /*#__PURE__*/function () {
     value: function startBattle() {
       this.combatMenu.show();
     }
-  }, {
-    key: "battleCallback",
-    value: function () {
-      var _battleCallback = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2(playerCombatAction) {
-        var combatActions, _i, _combatActions, combatAction;
-
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                combatActions = [playerCombatAction, this.monster.getCombatAction()]; // combatActions.forEach(async combatAction => await combatAction.handle());
-
-                _i = 0, _combatActions = combatActions;
-
-              case 2:
-                if (!(_i < _combatActions.length)) {
-                  _context2.next = 11;
-                  break;
-                }
-
-                combatAction = _combatActions[_i];
-                _context2.next = 6;
-                return combatAction.handle(this.notify);
-
-              case 6:
-                _context2.next = 8;
-                return _Time__WEBPACK_IMPORTED_MODULE_3__.default.sleep(this.delayBetweenTurns);
-
-              case 8:
-                _i++;
-                _context2.next = 2;
-                break;
-
-              case 11:
-                if (this.player.isAlive()) {
-                  _context2.next = 13;
-                  break;
-                }
-
-                return _context2.abrupt("return", this.handleBattleLost());
-
-              case 13:
-                if (this.monster.isAlive()) {
-                  _context2.next = 15;
-                  break;
-                }
-
-                return _context2.abrupt("return", this.handleBattleWon());
-
-              case 15:
-                this.combatMenu.show(); // console.table([this.player.stats, this.monster.stats]);
-                // console.table(combatActions);
-
-              case 16:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function battleCallback(_x2) {
-        return _battleCallback.apply(this, arguments);
-      }
-
-      return battleCallback;
-    }()
   }, {
     key: "handleBattleWon",
     value: function handleBattleWon() {//TODO: implement function
@@ -2468,8 +2521,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
@@ -2493,13 +2552,7 @@ var Action = function Action(name, callback) {
 };
 
 var CombatMenu = /*#__PURE__*/function () {
-  // initialActions = [
-  //     new Action('attack', this.battle.handleAttack),
-  //     // new Action('magic', this.showMagicActions),
-  //     // new Action('item', this.showItems),
-  //     new Action('escaspe', this.battle.escape),
-  //
-  // ]
+  // baseOptions = ['attack', 'steal', 'magic', 'item', 'run'];
   function CombatMenu(battle, player) {
     var _this = this;
 
@@ -2513,53 +2566,40 @@ var CombatMenu = /*#__PURE__*/function () {
 
     _defineProperty(this, "options", void 0);
 
-    _defineProperty(this, "baseOptions", ['attack', 'steal', 'magic', 'item', 'run']);
+    _defineProperty(this, "availableActions", []);
 
-    _defineProperty(this, "addHandleCallbackToElement", function (element) {
-      element.addEventListener('click', _this.handlePlayerInput);
+    _defineProperty(this, "addOptionToMenu", function (option) {
+      var optionElement = option.getRender();
+      optionElement.addEventListener('click', _this.handleClickMenuItem);
+
+      _this.element.appendChild(optionElement);
     });
 
-    _defineProperty(this, "handlePlayerInput", function (e) {
+    _defineProperty(this, "handleClickMenuItem", function (e) {
       _this.hide();
 
-      var action = e.target.innerText.toLowerCase();
+      var actionName = e.target.innerText.toLowerCase();
 
-      switch (action) {
-        case 'attack':
-          return _this.battle.battleCallback(new _CombatAction__WEBPACK_IMPORTED_MODULE_0__.default('attack', _this.player, _this.battle.monster));
+      var action = _this.options.find(function (option) {
+        return option.name === actionName;
+      });
 
-        case 'magic':
-          return _this.renderMagic();
+      if (!action) {
+        _this.battle.notify("Did not find ".concat(actionName));
 
-        case 'item':
-          return _this.renderItems();
+        _this.setOptions(_this.player.getMenuOptions());
 
-        case 'steal':
-          return _this.battle.battleCallback(new _CombatAction__WEBPACK_IMPORTED_MODULE_0__.default('steal', _this.player, _this.battle.monster));
-        // why is this regarded as an attack?
-
-        case 'run':
-          return _this.battle.battleCallback(new _CombatAction__WEBPACK_IMPORTED_MODULE_0__.default('run', _this.player, _this.battle.monster));
-        // why is this regarded as an attack?
-
-        default:
-          _this.battle.notify("Did not find ".concat(action));
-
-          throw new Error("Did not find ".concat(action));
-          break;
+        return;
       }
-    });
 
-    _defineProperty(this, "showMagicActions", function () {// return [
-      // new Action('water', )
-      // ]
+      console.log(action);
+      action.handle(_this, _this.battle.battleCallback);
     });
 
     this.battle = battle;
     this.player = player;
-    this.element = document.querySelector('.combat-menu'); // this.baseOptions.forEach(option => this.element.appendChild(this.makeHtmlOption(option)));
-
-    this.options = this.baseOptions;
+    this.element = document.querySelector('.combat-menu');
+    this.options = this.player.getMenuOptions(); // .then(options => this.options = options);
   }
 
   _createClass(CombatMenu, [{
@@ -2567,6 +2607,8 @@ var CombatMenu = /*#__PURE__*/function () {
     value: function setOptions(options) {
       this.clearBattleMenu();
       this.options = options; // options are changed on show.
+
+      this.show();
     }
   }, {
     key: "clearBattleMenu",
@@ -2578,44 +2620,35 @@ var CombatMenu = /*#__PURE__*/function () {
       });
     }
   }, {
-    key: "makeHtmlOption",
-    value: function makeHtmlOption(innerText) {
-      var htmlOption = document.createElement('p');
-      htmlOption.classList.add(['combat-option']);
-      htmlOption.innerText = innerText;
-      return htmlOption;
-    }
-  }, {
-    key: "renderMagic",
-    value: function renderMagic() {
-      this.setOptions(this.player.getMagic());
-      this.show();
-    }
-  }, {
-    key: "renderItems",
-    value: function renderItems() {
-      this.setOptions(this.player.getItems());
-      this.show();
-    }
-  }, {
     key: "show",
-    value: function show() {
-      var _this3 = this;
+    value: function () {
+      var _show = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
+        var optionRenders;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.options.map(this.addOptionToMenu);
 
-      var optionRenders = this.options.map(function (option) {
-        if (_typeof(option) === 'object') {
-          return option.getRender();
-        }
+              case 2:
+                optionRenders = _context.sent;
+                this.element.classList.add('active');
 
-        return _this3.makeHtmlOption(option);
-      }); // TODO: left off here, implementing items and their usage.
+              case 4:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
 
-      optionRenders.forEach(this.addHandleCallbackToElement);
-      optionRenders.forEach(function (option) {
-        return _this3.element.appendChild(option);
-      });
-      this.element.classList.add('active');
-    }
+      function show() {
+        return _show.apply(this, arguments);
+      }
+
+      return show;
+    }()
   }, {
     key: "hide",
     value: function hide() {
@@ -2627,6 +2660,260 @@ var CombatMenu = /*#__PURE__*/function () {
 }();
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (CombatMenu);
+
+/***/ }),
+
+/***/ "./resources/js/modules/Battle/CombatMenuItem.js":
+/*!*******************************************************!*\
+  !*** ./resources/js/modules/Battle/CombatMenuItem.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CombatMenuItem": () => (/* binding */ CombatMenuItem),
+/* harmony export */   "CombatMenuOption": () => (/* binding */ CombatMenuOption),
+/* harmony export */   "CombatMenuSkill": () => (/* binding */ CombatMenuSkill),
+/* harmony export */   "CombatMenuMagic": () => (/* binding */ CombatMenuMagic),
+/* harmony export */   "CombatMenuMenu": () => (/* binding */ CombatMenuMenu),
+/* harmony export */   "CombatMenuAction": () => (/* binding */ CombatMenuAction)
+/* harmony export */ });
+/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var MenuItemParent = /*#__PURE__*/function () {
+  function MenuItemParent() {// this.name = name;
+
+    _classCallCheck(this, MenuItemParent);
+  }
+
+  _createClass(MenuItemParent, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {}
+  }, {
+    key: "getRender",
+    value: function getRender() {
+      var htmlOption = document.createElement('p');
+      htmlOption.classList.add(['combat-option']);
+      htmlOption.innerText = this.name;
+      return htmlOption;
+    }
+  }]);
+
+  return MenuItemParent;
+}();
+
+var CombatMenuItem = /*#__PURE__*/function (_MenuItemParent) {
+  _inherits(CombatMenuItem, _MenuItemParent);
+
+  var _super = _createSuper(CombatMenuItem);
+
+  function CombatMenuItem(item, combatAction) {
+    var _this;
+
+    _classCallCheck(this, CombatMenuItem);
+
+    _this = _super.call(this);
+    _this.name = item.name;
+    _this.item = item;
+    _this.combatAction = combatAction;
+    return _this;
+  }
+
+  _createClass(CombatMenuItem, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {
+      battleCallback(this.combatAction);
+    }
+  }, {
+    key: "getRender",
+    value: function getRender() {
+      var htmlOption = this.createElement();
+      var quanityLabel = this.createQuantityLabel();
+      htmlOption.appendChild(quanityLabel);
+      return htmlOption;
+    }
+  }, {
+    key: "createElement",
+    value: function createElement() {
+      var _htmlOption$classList;
+
+      var htmlOption = document.createElement('p');
+
+      (_htmlOption$classList = htmlOption.classList).add.apply(_htmlOption$classList, ['render', 'item-render', 'combat-option']);
+
+      htmlOption.innerText = this.item.name;
+      return htmlOption;
+    }
+  }, {
+    key: "createQuantityLabel",
+    value: function createQuantityLabel() {
+      var _quantityLabel$classL;
+
+      var quantityLabel = document.createElement('label');
+
+      (_quantityLabel$classL = quantityLabel.classList).add.apply(_quantityLabel$classL, ['mr-4', 'float-right', 'lower']);
+
+      quantityLabel.innerText = "x ".concat(this.item.quantity);
+      return quantityLabel;
+    }
+  }]);
+
+  return CombatMenuItem;
+}(MenuItemParent);
+
+var CombatMenuOption = /*#__PURE__*/function (_MenuItemParent2) {
+  _inherits(CombatMenuOption, _MenuItemParent2);
+
+  var _super2 = _createSuper(CombatMenuOption);
+
+  function CombatMenuOption(name, combatAction) {
+    var _this2;
+
+    var menubles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
+    _classCallCheck(this, CombatMenuOption);
+
+    _this2 = _super2.call(this);
+    _this2.name = name;
+    _this2.combatAction = combatAction;
+    return _this2;
+  }
+
+  _createClass(CombatMenuOption, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {
+      battleCallback(this.combatAction);
+    }
+  }]);
+
+  return CombatMenuOption;
+}(MenuItemParent);
+
+var CombatMenuSkill = /*#__PURE__*/function (_MenuItemParent3) {
+  _inherits(CombatMenuSkill, _MenuItemParent3);
+
+  var _super3 = _createSuper(CombatMenuSkill);
+
+  function CombatMenuSkill(name, skill, combatAction) {
+    var _this3;
+
+    _classCallCheck(this, CombatMenuSkill);
+
+    _this3 = _super3.call(this);
+    _this3.name = name;
+    _this3.combatAction = combatAction;
+    return _this3;
+  }
+
+  _createClass(CombatMenuSkill, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {}
+  }]);
+
+  return CombatMenuSkill;
+}(MenuItemParent);
+
+var CombatMenuMenu = /*#__PURE__*/function (_MenuItemParent4) {
+  _inherits(CombatMenuMenu, _MenuItemParent4);
+
+  var _super4 = _createSuper(CombatMenuMenu);
+
+  function CombatMenuMenu(name, nextMenu) {
+    var _this4;
+
+    _classCallCheck(this, CombatMenuMenu);
+
+    _this4 = _super4.call(this);
+    _this4.name = name;
+    _this4.nextMenu = nextMenu;
+    return _this4;
+  }
+
+  _createClass(CombatMenuMenu, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {
+      combatMenu.setOptions(this.nextMenu);
+    }
+  }]);
+
+  return CombatMenuMenu;
+}(MenuItemParent);
+
+var CombatMenuMagic = /*#__PURE__*/function (_MenuItemParent5) {
+  _inherits(CombatMenuMagic, _MenuItemParent5);
+
+  var _super5 = _createSuper(CombatMenuMagic);
+
+  function CombatMenuMagic(name, magic) {
+    var _this5;
+
+    _classCallCheck(this, CombatMenuMagic);
+
+    _this5 = _super5.call(this);
+    _this5.name = name;
+    _this5.magic = magic;
+    return _this5;
+  }
+
+  _createClass(CombatMenuMagic, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {}
+  }]);
+
+  return CombatMenuMagic;
+}(MenuItemParent);
+
+var CombatMenuAction = /*#__PURE__*/function (_MenuItemParent6) {
+  _inherits(CombatMenuAction, _MenuItemParent6);
+
+  var _super6 = _createSuper(CombatMenuAction);
+
+  function CombatMenuAction(name, combatAction) {
+    var _this6;
+
+    _classCallCheck(this, CombatMenuAction);
+
+    _this6 = _super6.call(this);
+    _this6.name = name;
+    _this6.combatAction = combatAction;
+    return _this6;
+  }
+
+  _createClass(CombatMenuAction, [{
+    key: "handle",
+    value: function handle(combatMenu, battleCallback) {
+      battleCallback(this.combatAction);
+    }
+  }]);
+
+  return CombatMenuAction;
+}(MenuItemParent);
+
+
 
 /***/ }),
 
@@ -2850,68 +3137,6 @@ var EntityDisplayBattle = /*#__PURE__*/function () {
 
 /***/ }),
 
-/***/ "./resources/js/modules/Battle/Item.js":
-/*!*********************************************!*\
-  !*** ./resources/js/modules/Battle/Item.js ***!
-  \*********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var Item = /*#__PURE__*/function () {
-  function Item(statData) {
-    _classCallCheck(this, Item);
-
-    _defineProperty(this, "fillable", ['name', 'description', 'quantity']);
-
-    for (var key in statData) {
-      if (this.fillable.includes(key)) {
-        this[key] = statData[key];
-      }
-    }
-  }
-
-  _createClass(Item, [{
-    key: "getRender",
-    value: function getRender() {
-      var htmlOption = this.createElement();
-      var quanityLabel = document.createTextNode(this.quantity);
-      htmlOption.appendChild(quanityLabel);
-      htmlOption.addEventListener('click', this.handlePlayerInput);
-      return htmlOption;
-    }
-  }, {
-    key: "createElement",
-    value: function createElement() {
-      var _htmlOption$classList;
-
-      var htmlOption = document.createElement('p');
-
-      (_htmlOption$classList = htmlOption.classList).add.apply(_htmlOption$classList, ['render', 'item-render', 'combat-option']);
-
-      htmlOption.innerText = this.name;
-      return htmlOption;
-    }
-  }]);
-
-  return Item;
-}();
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Item);
-
-/***/ }),
-
 /***/ "./resources/js/modules/Battle/Monster.js":
 /*!************************************************!*\
   !*** ./resources/js/modules/Battle/Monster.js ***!
@@ -2923,11 +3148,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _Stats__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Stats */ "./resources/js/modules/Battle/Stats.js");
-/* harmony import */ var _EntityBattleDisplay__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EntityBattleDisplay */ "./resources/js/modules/Battle/EntityBattleDisplay.js");
-/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
-/* harmony import */ var _combatEntity__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combatEntity */ "./resources/js/modules/Battle/combatEntity.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _Stats__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Stats */ "./resources/js/modules/Battle/Stats.js");
+/* harmony import */ var _EntityBattleDisplay__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./EntityBattleDisplay */ "./resources/js/modules/Battle/EntityBattleDisplay.js");
+/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
+/* harmony import */ var _combatEntity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./combatEntity */ "./resources/js/modules/Battle/combatEntity.js");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2979,10 +3212,34 @@ var Monster = /*#__PURE__*/function (_CombatEntity) {
     _this.populateData(monsterData);
 
     return _this;
-  } //TODO: max hp should be given by server... - resources?
-
+  }
 
   _createClass(Monster, [{
+    key: "initAsync",
+    value: function () {
+      var _initAsync = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                return _context.abrupt("return");
+
+              case 1:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }));
+
+      function initAsync() {
+        return _initAsync.apply(this, arguments);
+      }
+
+      return initAsync;
+    }() //TODO: max hp should be given by server... - resources?
+
+  }, {
     key: "getMaxHp",
     value: function getMaxHp() {
       return 3 * this.stats.level * (0.6 * this.stats.vitality + 0.4 * this.stats.wisdom);
@@ -2990,12 +3247,12 @@ var Monster = /*#__PURE__*/function (_CombatEntity) {
   }, {
     key: "getCombatAction",
     value: function getCombatAction() {
-      return new _CombatAction__WEBPACK_IMPORTED_MODULE_2__.default('claw', this, this.refToBattle.player);
+      return new _CombatAction__WEBPACK_IMPORTED_MODULE_3__.default('claw', this, this.refToBattle.player);
     }
   }]);
 
   return Monster;
-}(_combatEntity__WEBPACK_IMPORTED_MODULE_3__.default);
+}(_combatEntity__WEBPACK_IMPORTED_MODULE_4__.default);
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Monster);
 
@@ -3012,13 +3269,34 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _Stats__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Stats */ "./resources/js/modules/Battle/Stats.js");
-/* harmony import */ var _EntityBattleDisplay__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EntityBattleDisplay */ "./resources/js/modules/Battle/EntityBattleDisplay.js");
-/* harmony import */ var _CombatMenu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./CombatMenu */ "./resources/js/modules/Battle/CombatMenu.js");
-/* harmony import */ var _combatEntity__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combatEntity */ "./resources/js/modules/Battle/combatEntity.js");
-/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
-/* harmony import */ var _Item__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Item */ "./resources/js/modules/Battle/Item.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _Stats__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Stats */ "./resources/js/modules/Battle/Stats.js");
+/* harmony import */ var _EntityBattleDisplay__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./EntityBattleDisplay */ "./resources/js/modules/Battle/EntityBattleDisplay.js");
+/* harmony import */ var _CombatMenu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./CombatMenu */ "./resources/js/modules/Battle/CombatMenu.js");
+/* harmony import */ var _combatEntity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./combatEntity */ "./resources/js/modules/Battle/combatEntity.js");
+/* harmony import */ var _CombatAction__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./CombatAction */ "./resources/js/modules/Battle/CombatAction.js");
+/* harmony import */ var _Item__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../Item */ "./resources/js/modules/Item.js");
+/* harmony import */ var _Repo__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../Repo */ "./resources/js/modules/Repo.js");
+/* harmony import */ var _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./CombatMenuItem */ "./resources/js/modules/Battle/CombatMenuItem.js");
+/* harmony import */ var _Skill__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Skill */ "./resources/js/modules/Battle/Skill.js");
+/* harmony import */ var _inventories_MagicInventory__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../inventories/MagicInventory */ "./resources/js/modules/inventories/MagicInventory.js");
+/* harmony import */ var _inventories_ItemInventory__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../inventories/ItemInventory */ "./resources/js/modules/inventories/ItemInventory.js");
+/* harmony import */ var _inventories_SkillInventory__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../inventories/SkillInventory */ "./resources/js/modules/inventories/SkillInventory.js");
+/* harmony import */ var _AvailableActionStore__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../AvailableActionStore */ "./resources/js/modules/AvailableActionStore.js");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -3049,6 +3327,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
+
+
+
+
+
+
 var Player = /*#__PURE__*/function (_CombatEntity) {
   _inherits(Player, _CombatEntity);
 
@@ -3061,7 +3346,7 @@ var Player = /*#__PURE__*/function (_CombatEntity) {
 
     _this = _super.call(this, refToBattle);
 
-    _defineProperty(_assertThisInitialized(_this), "fillable", ['name', 'image_url', 'x', 'y']);
+    _defineProperty(_assertThisInitialized(_this), "fillable", ['id', 'name', 'image_url', 'x', 'y']);
 
     _defineProperty(_assertThisInitialized(_this), "stats", void 0);
 
@@ -3071,43 +3356,260 @@ var Player = /*#__PURE__*/function (_CombatEntity) {
 
     _defineProperty(_assertThisInitialized(_this), "entityType", 'player');
 
-    _this.populateData(playerData); // this.combatMenu = new CombatMenu(refToBattle, this);
+    _defineProperty(_assertThisInitialized(_this), "magicInventory", void 0);
 
+    _defineProperty(_assertThisInitialized(_this), "itemInventory", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "getItemMenuOptions", function () {
+      return _this.itemInventory.items.map(function (item) {
+        return new _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__.CombatMenuItem(item, new _CombatAction__WEBPACK_IMPORTED_MODULE_5__.default(item, _assertThisInitialized(_this), _this.refToBattle.monster, 'item'));
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "getMenuOptions", function () {
+      return [new _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__.CombatMenuAction('attack', new _CombatAction__WEBPACK_IMPORTED_MODULE_5__.default('attack', _assertThisInitialized(_this), _this.refToBattle.monster)), new _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__.CombatMenuSkill('steal', new _Skill__WEBPACK_IMPORTED_MODULE_9__.Steal(_assertThisInitialized(_this), _this.refToBattle.monster)), // new CombatMenuMenu('magic', this.getMagicMenuOptions()),
+      new _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__.CombatMenuMenu('item', _this.getItemMenuOptions()), new _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__.CombatMenuSkill('run', new _Skill__WEBPACK_IMPORTED_MODULE_9__.Run(_assertThisInitialized(_this), _this.refToBattle.monster))];
+    });
+
+    _this.populateData(playerData);
 
     return _this;
-  } // Todo: max hp should be provided by the server -> resources
-
+  }
 
   _createClass(Player, [{
+    key: "initAsync",
+    value: function () {
+      var _initAsync = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
+        var magicData, inventoryData, skillData;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return _Repo__WEBPACK_IMPORTED_MODULE_7__.default.getMagicForPlayer(this.id);
+
+              case 2:
+                magicData = _context.sent;
+                this.magicInventory = new _inventories_MagicInventory__WEBPACK_IMPORTED_MODULE_10__.default(magicData);
+                _context.next = 6;
+                return _Repo__WEBPACK_IMPORTED_MODULE_7__.default.getInventoryForPlayer(this.id);
+
+              case 6:
+                inventoryData = _context.sent;
+                this.itemInventory = new _inventories_ItemInventory__WEBPACK_IMPORTED_MODULE_11__.default(inventoryData);
+                _context.next = 10;
+                return _Repo__WEBPACK_IMPORTED_MODULE_7__.default.getSkillsForPlayer(this.id);
+
+              case 10:
+                skillData = _context.sent;
+                this.skillInventory = new _inventories_SkillInventory__WEBPACK_IMPORTED_MODULE_12__.default(skillData);
+                this.availableActions = new _AvailableActionStore__WEBPACK_IMPORTED_MODULE_13__.default(this.magicInventory, this.itemInventory, this.skillInventory);
+
+              case 13:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function initAsync() {
+        return _initAsync.apply(this, arguments);
+      }
+
+      return initAsync;
+    }() // Todo: max hp should be provided by the server -> resources
+
+  }, {
     key: "getMaxHp",
     value: function getMaxHp() {
       return 3 * this.stats.level * (0.3 * this.stats.vitality + 0.2 * this.stats.wisdom);
     }
   }, {
-    key: "getMagic",
-    value: function getMagic() {
-      return ['water', 'fire', 'earth', 'earth2', 'haii'];
-    }
+    key: "getMagicMenuOptions",
+    value: function () {
+      var _getMagicMenuOptions = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2() {
+        var options, _iterator, _step, magic, combatMenuMagic;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                options = [];
+                _iterator = _createForOfIteratorHelper(this.getMagic());
+                _context2.prev = 2;
+
+                _iterator.s();
+
+              case 4:
+                if ((_step = _iterator.n()).done) {
+                  _context2.next = 12;
+                  break;
+                }
+
+                magic = _step.value;
+                _context2.next = 8;
+                return new _CombatMenuItem__WEBPACK_IMPORTED_MODULE_8__.CombatMenuMagic(magic.name, new Magic(magic, this, this.refToBattle.monster));
+
+              case 8:
+                combatMenuMagic = _context2.sent;
+                option.push(combatMenuMagic);
+
+              case 10:
+                _context2.next = 4;
+                break;
+
+              case 12:
+                _context2.next = 17;
+                break;
+
+              case 14:
+                _context2.prev = 14;
+                _context2.t0 = _context2["catch"](2);
+
+                _iterator.e(_context2.t0);
+
+              case 17:
+                _context2.prev = 17;
+
+                _iterator.f();
+
+                return _context2.finish(17);
+
+              case 20:
+                return _context2.abrupt("return", options);
+
+              case 21:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[2, 14, 17, 20]]);
+      }));
+
+      function getMagicMenuOptions() {
+        return _getMagicMenuOptions.apply(this, arguments);
+      }
+
+      return getMagicMenuOptions;
+    }()
   }, {
-    key: "getItems",
-    value: function getItems() {
-      return [new _Item__WEBPACK_IMPORTED_MODULE_5__.default({
-        'name': 'potion',
-        'quantity': 2
-      }), new _Item__WEBPACK_IMPORTED_MODULE_5__.default({
-        'name': 'phoenix down',
-        'quantity': 1
-      }), new _Item__WEBPACK_IMPORTED_MODULE_5__.default({
-        'name': 'ether',
-        'quantity': 77
-      })];
-    }
+    key: "getAvailableActions",
+    value: function () {
+      var _getAvailableActions = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                throw new Error('should i be here?');
+
+              case 2:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function getAvailableActions() {
+        return _getAvailableActions.apply(this, arguments);
+      }
+
+      return getAvailableActions;
+    }()
   }]);
 
   return Player;
-}(_combatEntity__WEBPACK_IMPORTED_MODULE_3__.default);
+}(_combatEntity__WEBPACK_IMPORTED_MODULE_4__.default);
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Player);
+
+/***/ }),
+
+/***/ "./resources/js/modules/Battle/Skill.js":
+/*!**********************************************!*\
+  !*** ./resources/js/modules/Battle/Skill.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Skill": () => (/* binding */ Skill),
+/* harmony export */   "Steal": () => (/* binding */ Steal),
+/* harmony export */   "Run": () => (/* binding */ Run)
+/* harmony export */ });
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Skill = function Skill() {
+  _classCallCheck(this, Skill);
+
+  _defineProperty(this, "name", void 0);
+
+  _defineProperty(this, "origin", void 0);
+
+  _defineProperty(this, "target", void 0);
+};
+
+var Steal = /*#__PURE__*/function (_Skill) {
+  _inherits(Steal, _Skill);
+
+  var _super = _createSuper(Steal);
+
+  function Steal(origin, target) {
+    var _this;
+
+    _classCallCheck(this, Steal);
+
+    _this = _super.call(this);
+    _this.name = 'steal';
+    _this.origin = origin;
+    _this.target = target;
+    return _this;
+  }
+
+  return Steal;
+}(Skill);
+
+var Run = /*#__PURE__*/function (_Skill2) {
+  _inherits(Run, _Skill2);
+
+  var _super2 = _createSuper(Run);
+
+  function Run(origin, target) {
+    var _this2;
+
+    _classCallCheck(this, Run);
+
+    _this2 = _super2.call(this);
+    _this2.name = 'run';
+    _this2.origin = origin;
+    _this2.target = target;
+    return _this2;
+  }
+
+  return Run;
+}(Skill);
+
+
 
 /***/ }),
 
@@ -3316,6 +3818,180 @@ var CombatEntity = /*#__PURE__*/function () {
 
 /***/ }),
 
+/***/ "./resources/js/modules/Item.js":
+/*!**************************************!*\
+  !*** ./resources/js/modules/Item.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Item = function Item(itemData) {
+  _classCallCheck(this, Item);
+
+  _defineProperty(this, "fillable", ['name', 'description', 'quantity']);
+
+  var fillableKeys = itemData.intersectKeys(this.fillable);
+
+  var _iterator = _createForOfIteratorHelper(fillableKeys),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var key = _step.value;
+      this[key] = itemData[key];
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Item);
+
+/***/ }),
+
+/***/ "./resources/js/modules/Magic.js":
+/*!***************************************!*\
+  !*** ./resources/js/modules/Magic.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Magic = function Magic(magicData) {
+  _classCallCheck(this, Magic);
+
+  _defineProperty(this, "fillable", ['name', 'level', 'waterAttribute', 'fireAttribute', 'earthAttribute', 'airAttribute', 'multiplier']);
+
+  for (var key in magicData.intersectKeys(this.fillable)) {
+    this[key] = magicData[key];
+  }
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Magic);
+
+/***/ }),
+
+/***/ "./resources/js/modules/Repo.js":
+/*!**************************************!*\
+  !*** ./resources/js/modules/Repo.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Item__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Item */ "./resources/js/modules/Item.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Repo = /*#__PURE__*/function () {
+  function Repo() {
+    _classCallCheck(this, Repo);
+  }
+
+  _createClass(Repo, null, [{
+    key: "getMagic",
+    value: function getMagic() {}
+  }, {
+    key: "getMagicForPlayer",
+    value: function getMagicForPlayer(id) {
+      return [{
+        name: 'water',
+        level: 1,
+        waterAttribute: 2,
+        fireAttribute: -2,
+        earthAttribute: 0,
+        airAttribute: 1,
+        multipler: 1.2
+      }, {
+        name: 'fire',
+        level: 1,
+        waterAttribute: -2,
+        fireAttribute: 2,
+        earthAttribute: 0,
+        airAttribute: 3,
+        multipler: 1.2
+      }, {
+        name: 'fira',
+        level: 1,
+        waterAttribute: -10,
+        fireAttribute: 10,
+        earthAttribute: 0,
+        airAttribute: 3,
+        multipler: 2
+      }, {
+        name: 'quake',
+        level: 1,
+        waterAttribute: 1,
+        fireAttribute: 0,
+        earthAttribute: 3,
+        airAttribute: 1,
+        multipler: 1.2
+      }];
+    }
+  }, {
+    key: "getInventoryForPlayer",
+    value: function getInventoryForPlayer(id) {
+      return [{
+        name: 'potion',
+        quantity: 2
+      }, {
+        name: 'phoenix down',
+        quantity: 1
+      }, {
+        name: 'ether',
+        quantity: 77
+      }];
+    }
+  }, {
+    key: "getSkillsForPlayer",
+    value: function getSkillsForPlayer(id) {
+      return [];
+      return [{
+        name: steal
+      }, {
+        name: run
+      }];
+    }
+  }]);
+
+  return Repo;
+}();
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Repo);
+
+/***/ }),
+
 /***/ "./resources/js/modules/Time.js":
 /*!**************************************!*\
   !*** ./resources/js/modules/Time.js ***!
@@ -3351,6 +4027,248 @@ var Time = /*#__PURE__*/function () {
 }();
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Time);
+
+/***/ }),
+
+/***/ "./resources/js/modules/inventories/InventoryBase.js":
+/*!***********************************************************!*\
+  !*** ./resources/js/modules/inventories/InventoryBase.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Item__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Item */ "./resources/js/modules/Item.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+var InventoryBase = /*#__PURE__*/function () {
+  function InventoryBase() {
+    _classCallCheck(this, InventoryBase);
+
+    _defineProperty(this, "items", []);
+
+    _defineProperty(this, "quantity", void 0);
+  }
+
+  _createClass(InventoryBase, [{
+    key: "getActions",
+    value: function getActions() {
+      return this.items;
+    } // Todo: perhaps add (de)bufs and stuff?
+
+  }]);
+
+  return InventoryBase;
+}();
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (InventoryBase);
+
+/***/ }),
+
+/***/ "./resources/js/modules/inventories/ItemInventory.js":
+/*!***********************************************************!*\
+  !*** ./resources/js/modules/inventories/ItemInventory.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Item__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Item */ "./resources/js/modules/Item.js");
+/* harmony import */ var _InventoryBase__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./InventoryBase */ "./resources/js/modules/inventories/InventoryBase.js");
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+var ItemInventory = /*#__PURE__*/function (_InventoryBase) {
+  _inherits(ItemInventory, _InventoryBase);
+
+  var _super = _createSuper(ItemInventory);
+
+  function ItemInventory(itemInventoryData) {
+    var _this;
+
+    _classCallCheck(this, ItemInventory);
+
+    _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "items", []);
+
+    _defineProperty(_assertThisInitialized(_this), "quantity", void 0);
+
+    itemInventoryData.forEach(function (itemData) {
+      _this.items.push(new _Item__WEBPACK_IMPORTED_MODULE_0__.default(itemData));
+    });
+    return _this;
+  } // Todo: perhaps add (de)bufs and stuff?
+
+
+  return ItemInventory;
+}(_InventoryBase__WEBPACK_IMPORTED_MODULE_1__.default);
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ItemInventory);
+
+/***/ }),
+
+/***/ "./resources/js/modules/inventories/MagicInventory.js":
+/*!************************************************************!*\
+  !*** ./resources/js/modules/inventories/MagicInventory.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Magic__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Magic */ "./resources/js/modules/Magic.js");
+/* harmony import */ var _InventoryBase__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./InventoryBase */ "./resources/js/modules/inventories/InventoryBase.js");
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+var MagicInventory = /*#__PURE__*/function (_InventoryBase) {
+  _inherits(MagicInventory, _InventoryBase);
+
+  var _super = _createSuper(MagicInventory);
+
+  function MagicInventory(magicInventoryData) {
+    var _this;
+
+    _classCallCheck(this, MagicInventory);
+
+    _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "items", []);
+
+    _this.items = magicInventoryData.map(function (magicData) {
+      return new _Magic__WEBPACK_IMPORTED_MODULE_0__.default(magicData);
+    });
+    return _this;
+  } // Todo: perhaps add (de)bufs and stuff?
+
+
+  return MagicInventory;
+}(_InventoryBase__WEBPACK_IMPORTED_MODULE_1__.default);
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MagicInventory);
+
+/***/ }),
+
+/***/ "./resources/js/modules/inventories/SkillInventory.js":
+/*!************************************************************!*\
+  !*** ./resources/js/modules/inventories/SkillInventory.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Battle_Skill__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Battle/Skill */ "./resources/js/modules/Battle/Skill.js");
+/* harmony import */ var _InventoryBase__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./InventoryBase */ "./resources/js/modules/inventories/InventoryBase.js");
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+var SkillInventory = /*#__PURE__*/function (_InventoryBase) {
+  _inherits(SkillInventory, _InventoryBase);
+
+  var _super = _createSuper(SkillInventory);
+
+  function SkillInventory(skillInventoryData) {
+    var _this;
+
+    _classCallCheck(this, SkillInventory);
+
+    _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "items", []);
+
+    _defineProperty(_assertThisInitialized(_this), "quantity", void 0);
+
+    skillInventoryData.forEach(function (skillData) {
+      _this.items.push(new _Battle_Skill__WEBPACK_IMPORTED_MODULE_0__.Skill(skillData));
+    });
+    return _this;
+  } // Todo: perhaps add (de)bufs and stuff?
+
+
+  return SkillInventory;
+}(_InventoryBase__WEBPACK_IMPORTED_MODULE_1__.default);
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SkillInventory);
 
 /***/ }),
 

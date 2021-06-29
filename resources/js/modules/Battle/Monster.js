@@ -20,6 +20,10 @@ class Monster extends CombatEntity {
         this.populateData(monsterData);
     }
 
+    async initAsync() {
+        return;
+    }
+
     //TODO: max hp should be given by server... - resources?
     getMaxHp() {
         return (3 * this.stats.level) * ((0.6 * this.stats.vitality) + (0.4 * this.stats.wisdom));

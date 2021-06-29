@@ -14,16 +14,22 @@ class Battle {
         this.monster = new Monster(battleData.monster, this);
         this.player = new Player(battleData.player, this);
         this.combatNotification = new CombatNotification();
-        this.combatMenu = new CombatMenu(this, this.player);
 
-        this.startBattle();
+
+        Promise.all([
+            this.player.initAsync(),
+            this.monster.initAsync()
+        ]).then(() => {
+            this.combatMenu = new CombatMenu(this, this.player);
+            this.startBattle();
+        })
     }
 
     startBattle() {
         this.combatMenu.show();
     }
 
-    async battleCallback(playerCombatAction) {
+    battleCallback = async (playerCombatAction) => {
         let combatActions = [playerCombatAction, this.monster.getCombatAction()];
         // combatActions.forEach(async combatAction => await combatAction.handle());
 
@@ -31,6 +37,8 @@ class Battle {
             await combatAction.handle(this.notify);
             await Time.sleep(this.delayBetweenTurns);
         }
+
+        // save player and monster changes.
 
         if (!this.player.isAlive()) {
             return this.handleBattleLost();
@@ -42,8 +50,6 @@ class Battle {
         }
 
         this.combatMenu.show();
-        // console.table([this.player.stats, this.monster.stats]);
-        // console.table(combatActions);
     }
 
     notify = async (message) => {

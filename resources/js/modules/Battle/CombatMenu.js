@@ -16,94 +16,57 @@ class CombatMenu {
     element;
 
     options;
-    baseOptions = ['attack', 'steal', 'magic', 'item', 'run'];
-    // initialActions = [
-    //     new Action('attack', this.battle.handleAttack),
-    //     // new Action('magic', this.showMagicActions),
-    //     // new Action('item', this.showItems),
-    //     new Action('escaspe', this.battle.escape),
-    //
-    // ]
+    // baseOptions = ['attack', 'steal', 'magic', 'item', 'run'];
+    availableActions = [];
 
     constructor(battle, player) {
         this.battle = battle;
         this.player = player;
         this.element = document.querySelector('.combat-menu');
-        // this.baseOptions.forEach(option => this.element.appendChild(this.makeHtmlOption(option)));
-        this.options = this.baseOptions;
+        this.options = this.player.getMenuOptions()
+            // .then(options => this.options = options);
     }
 
     setOptions(options ) {
         this.clearBattleMenu();
         this.options = options; // options are changed on show.
+        this.show();
     }
 
     clearBattleMenu() {
         Array.from(this.element.children).forEach(child => this.element.removeChild(child));
     }
 
-    makeHtmlOption(innerText) {
-        let htmlOption = document.createElement('p');
-        htmlOption.classList.add(['combat-option']);
-        htmlOption.innerText = innerText;
-
-        return htmlOption;
+    addOptionToMenu = (option) => {
+        let optionElement = option.getRender();
+        optionElement.addEventListener('click', this.handleClickMenuItem);
+        this.element.appendChild(optionElement);
     }
 
-    addHandleCallbackToElement = (element) => {
-        element.addEventListener('click', this.handlePlayerInput);
-    }
-
-    handlePlayerInput = (e) => {
+    handleClickMenuItem = (e) => {
         this.hide();
-        let action = e.target.innerText.toLowerCase();
-        switch(action) {
-            case 'attack': return this.battle.battleCallback(new CombatAction('attack', this.player, this.battle.monster));
-            case 'magic': return this.renderMagic();
-            case 'item': return this.renderItems();
-            case 'steal': return this.battle.battleCallback(new CombatAction('steal', this.player, this.battle.monster)); // why is this regarded as an attack?
-            case 'run': return this.battle.battleCallback(new CombatAction('run', this.player, this.battle.monster)); // why is this regarded as an attack?
-            default:
-                this.battle.notify(`Did not find ${action}`);
-                throw new Error(`Did not find ${action}`);
-                break;
+
+        let actionName = e.target.innerText.toLowerCase();
+        let action = this.options.find(option => option.name === actionName);
+
+        if (!action) {
+            this.battle.notify(`Did not find ${actionName}`);
+            this.setOptions(this.player.getMenuOptions());
+            return;
         }
+
+        console.log(action);
+        action.handle(this, this.battle.battleCallback)
     }
 
-    renderMagic() {
-        this.setOptions(this.player.getMagic());
-        this.show();
-    }
-
-    renderItems() {
-        this.setOptions(this.player.getItems());
-        this.show();
-    }
-
-    show() {
-        let optionRenders = this.options.map(option => {
-            if (typeof option === 'object') {
-                return option.getRender();
-            }
-
-            return this.makeHtmlOption(option);
-        })
-        // TODO: left off here, implementing items and their usage.
-        optionRenders.forEach(this.addHandleCallbackToElement);
-        optionRenders.forEach(option => this.element.appendChild(option));
+    async show() {
+        let optionRenders = await this.options.map(this.addOptionToMenu);
         this.element.classList.add('active');
     }
 
     hide() {
         this.element.classList.remove('active');
     }
-
-    showMagicActions = () => {
-        // return [
-            // new Action('water', )
-        // ]
-    }
-
 }
 
 export default CombatMenu;

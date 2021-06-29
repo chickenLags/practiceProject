@@ -7,6 +7,14 @@ Array.prototype.intersect = function(arr1) {
     return this.filter(item => arr1.includes(item));
 }
 
+Array.prototype.merge = function(arr) {
+    return this.concat(arr);
+}
+
+Object.prototype.intersectKeys = function(arr) {
+    return Object.keys(this).intersect(arr);
+}
+
 
 function getCookie(cname) {
     let name = cname + "=";
